@@ -111,5 +111,94 @@ public class YelpDao {
 		}
 	}
 	
+	public List<String> getAllCities(){
+		String sql = "SELECT DISTINCT `city` "
+				+ "FROM `Business`";
+		List<String> result = new ArrayList<String>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			
+			while (res.next()) {
+				result.add(res.getString("city"));
+			}
+			
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public List<Business> getBusinesses(String c, Integer a){
+		String sql = "SELECT DISTINCT b.* "
+				+ "FROM `Business` b, `Reviews` r "
+				+ "WHERE b.`business_id` = r.`business_id` AND b.`city` = ? AND YEAR(r.`review_date`) = ?";
+		List<Business> result = new ArrayList<Business>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, c);
+			st.setInt(2, a);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+				Business business = new Business(res.getString("business_id"), 
+						res.getString("full_address"),
+						res.getString("active"),
+						res.getString("categories"),
+						res.getString("city"),
+						res.getInt("review_count"),
+						res.getString("business_name"),
+						res.getString("neighborhoods"),
+						res.getDouble("latitude"),
+						res.getDouble("longitude"),
+						res.getString("state"),
+						res.getDouble("stars"));
+				result.add(business);
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public double getMedia(Business b, Integer a) {
+		String sql = "SELECT AVG(`stars`) AS media "
+				+ "FROM `Reviews` "
+				+ "WHERE YEAR(`review_date`) = ? AND `business_id` = ?";
+		double result = 0;
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, a);
+			st.setString(2, b.getBusinessId());
+			ResultSet res = st.executeQuery();
+			
+			while (res.next()) {
+				result = res.getDouble("media");
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
 	
 }
